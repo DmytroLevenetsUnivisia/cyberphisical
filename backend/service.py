@@ -3,7 +3,7 @@ import os, dotenv
 from sqlalchemy import create_engine
 from uuid import uuid4
 
-from backend.app.models import Sensor, Reading
+from backend.models import Sensor, Reading
 
 # dotenv.load_dotenv()
 # DATABASE_URL = os.getenv("DATABASE_URL")
