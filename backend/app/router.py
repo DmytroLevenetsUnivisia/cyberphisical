@@ -16,18 +16,18 @@ async def health():
 
 
 @router.get("/sensors")
-async def test():
+async def function():
     return sensors
 
 
 @router.post("/sensors")
-async def test(sensor: CreateSensor):
+async def function(sensor: CreateSensor):
     print(sensor)
     return create_sensor(**sensor.model_dump())
 
 
 @router.get("/sensors/{sensor_id}")
-async def test(sensor_id: str):
+async def function(sensor_id: str):
     try:
         return get_sensor(sensor_id)
     except Exception as e:
@@ -35,15 +35,15 @@ async def test(sensor_id: str):
 
 
 @router.patch("/sensors/{sensor_id}")
-async def test(sensor_id: str, new_value: UpdateSensor):
+async def function(sensor_id: str, new_value: UpdateSensor):
     try:
-        return update_sensor(sensor_id, new_value)
+        return update_sensor(sensor_id, new_value.value)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.delete("/sensors/{sensor_id}")
-async def test(sensor_id: str):
+async def function(sensor_id: str):
     try:
         return delete_sensor(sensor_id)
     except Exception as e:

@@ -1,11 +1,15 @@
 from pydantic import BaseModel
 
 
+class Reading(BaseModel):
+    timestamp: float
+    value: float
+
+
 class Sensor(BaseModel):
     id: str
-    timestamp: float
     name: str
-    value: float
+    readings: list[Reading]
     unit: str
 
 

@@ -1,7 +1,13 @@
 import time
+import os, dotenv
+from sqlalchemy import create_engine
 from uuid import uuid4
 
-from backend.models import Sensor
+from backend.app.models import Sensor, Reading
+
+# dotenv.load_dotenv()
+# DATABASE_URL = os.getenv("DATABASE_URL")
+# engine = create_engine(DATABASE_URL)
 
 sensors: list[Sensor] = []
 
@@ -9,9 +15,8 @@ sensors: list[Sensor] = []
 def create_sensor(name: str, value: float, unit: str):
     sensor = Sensor(
         id=uuid4().hex,
-        timestamp=int(time.time()),
         name=name,
-        value=value,
+        readings=[Reading(value=value, timestamp=int(time.time()))],
         unit=unit
     )
     sensors.append(sensor)
@@ -33,8 +38,7 @@ def get_all_sensors() -> list[Sensor]:
 
 def update_sensor(id: str, value: float):
     sensor = get_sensor(id)
-    sensor.timestamp = time.time()
-    sensor.value = value
+    sensor.readings.append(Reading(value=value, timestamp=int(time.time())))
 
     return sensor
 
