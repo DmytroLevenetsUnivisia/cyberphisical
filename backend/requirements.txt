@@ -3,3 +3,4 @@ python-dotenv
 fastapi
 pydantic
 starlette
+sqlalchemy
