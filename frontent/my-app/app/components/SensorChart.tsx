@@ -1,6 +1,7 @@
 "use client";
 
 import {useEffect, useState} from "react";
+import {useRouter} from "next/navigation";
 import {
     Chart as ChartJS,
     LineElement,
@@ -70,6 +71,7 @@ export default function SensorChart({
     const [timeBasedSpacing, setTimeBasedSpacing] = useState(true);
     const [pointsToShow, setPointsToShow] = useState(Math.max(measurement.length, 1));
     const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+    const router = useRouter();
     const visibleReadings = measurement.slice(-pointsToShow);
 
     useEffect(() => {
@@ -141,6 +143,13 @@ export default function SensorChart({
                         }}
                     />
                 </label>
+                <button
+                    type="button"
+                    className="rounded border border-gray-600 bg-gray-800 px-3 py-1 text-white hover:bg-gray-700"
+                    onClick={() => router.refresh()}
+                >
+                    Refresh
+                </button>
             </div>
             <Line
                 //@ts-expect-error Chart.js accepts the runtime dataset shape used here.
