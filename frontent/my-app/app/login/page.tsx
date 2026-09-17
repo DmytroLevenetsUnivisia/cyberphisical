@@ -18,7 +18,7 @@ export default function Login() {
                     type="button"
                     onClick={() => setIsSignUp(false)}
                     className={`flex-1 rounded border p-2 ${
-                        !isSignUp ? "bg-cyan-700 text-white" : "bg-gray-200"
+                        isSignUp ? "bg-cyan-700 text-white" : "bg-gray-200 text-black"
                     }`}
                 >
                     Log in
@@ -27,7 +27,7 @@ export default function Login() {
                     type="button"
                     onClick={() => setIsSignUp(true)}
                     className={`flex-1 rounded border p-2 ${
-                        isSignUp ? "bg-cyan-700 text-white" : "bg-gray-200"
+                        !isSignUp ? "bg-cyan-700 text-white" : "bg-gray-200 text-black"
                     }`}
                 >
                     Sign up

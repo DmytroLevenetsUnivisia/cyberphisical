@@ -5,7 +5,27 @@ const apiClient = axios.create({
     headers: {'Content-Type': 'application/json'},
 });
 
-export interface Reading {
+export class ApiConnectionError extends Error {
+    constructor() {
+        super('Unable to connect to the backend service.');
+        this.name = 'ApiConnectionError';
+    }
+}
+
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error: unknown) => {
+        if (
+            axios.isAxiosError(error) &&
+            (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK')
+        ) {
+            throw new ApiConnectionError();
+        }
+        throw error;
+    },
+);
+
+export interface Measurement {
     timestamp: number
     value: number
 }
@@ -14,7 +34,7 @@ export interface Sensor {
     id: string
     name: string
     unit: string
-    readings: Reading[]
+    measurement: Measurement[]
 }
 
 export interface CreateSensor {
@@ -43,8 +63,8 @@ export const api = {
         return data;
     },
 
-    async patchSensor(id: string, sensor: Sensor): Promise<Sensor> {
-        const {data} = await apiClient.patch<Sensor>(`/sensors/${id}`, sensor);
+    async patchSensor(id: string, value: number): Promise<Sensor> {
+        const {data} = await apiClient.patch<Sensor>(`/sensors/${id}`, value);
         return data;
     },
 

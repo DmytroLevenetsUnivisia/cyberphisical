@@ -4,9 +4,12 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from router import router
+from database import engine, Base
+
+Base.metadata.create_all(bind=engine)
 
 dotenv.load_dotenv()
-origins = os.getenv("ORIGINS").split(",")
+origins = os.getenv("ORIGINS").split(",") if os.getenv("ORIGINS") else "*"
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,

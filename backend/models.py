@@ -1,23 +1,28 @@
-from pydantic import BaseModel
+from sqlalchemy import String, ForeignKey, Float, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from database import Base
 
 
-class Reading(BaseModel):
-    timestamp: float
-    value: float
+class Sensor(Base):
+    __tablename__ = "sensor"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100))
+    unit: Mapped[str] = mapped_column(String(20))
+
+    measurement: Mapped[list["Measurement"]] = relationship(
+        back_populates="sensor",
+        cascade="all, delete-orphan",
+    )
 
 
-class Sensor(BaseModel):
-    id: str
-    name: str
-    readings: list[Reading]
-    unit: str
+class Measurement(Base):
+    __tablename__ = "measurement"
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sensor_id: Mapped[int] = mapped_column(ForeignKey("sensor.id"))
+    value: Mapped[float] = mapped_column(Float)
+    timestamp: Mapped[int] = mapped_column(Integer)
 
-class CreateSensor(BaseModel):
-    name: str
-    value: float = .0
-    unit: str
-
-
-class UpdateSensor(BaseModel):
-    value: float
+    sensor: Mapped["Sensor"] = relationship(back_populates="measurement")

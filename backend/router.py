@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException
-from models import CreateSensor, UpdateSensor
-from service import *
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+
+from database import get_db
+from schemas import NewSensor, UpdateSensor
+from service import get_all_sensors, get_one_sensor, update_sensor, delete_sensor, create_sensor
 
 router = APIRouter()
 
@@ -16,35 +19,25 @@ async def health():
 
 
 @router.get("/sensors")
-async def function():
-    return sensors
-
-
-@router.post("/sensors")
-async def function(sensor: CreateSensor):
-    print(sensor)
-    return create_sensor(**sensor.model_dump())
+def function(db: Session = Depends(get_db)):
+    return get_all_sensors(db)
 
 
 @router.get("/sensors/{sensor_id}")
-async def function(sensor_id: str):
-    try:
-        return get_sensor(sensor_id)
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+async def function(sensor_id: int, db: Session = Depends(get_db)):
+    return get_one_sensor(sensor_id, db)
+
+
+@router.post("/sensors")
+async def function(new_sensor: NewSensor, db: Session = Depends(get_db)):
+    return create_sensor(new_sensor, db)
 
 
 @router.patch("/sensors/{sensor_id}")
-async def function(sensor_id: str, new_value: UpdateSensor):
-    try:
-        return update_sensor(sensor_id, new_value.value)
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+async def function(sensor_id: int, new_value: UpdateSensor, db: Session = Depends(get_db)):
+    return update_sensor(sensor_id, new_value, db)
 
 
 @router.delete("/sensors/{sensor_id}")
-async def function(sensor_id: str):
-    try:
-        return delete_sensor(sensor_id)
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+async def function(sensor_id: int, db: Session = Depends(get_db)):
+    return delete_sensor(sensor_id, db)

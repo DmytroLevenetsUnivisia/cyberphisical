@@ -2,9 +2,8 @@ import {Sensor} from "../api";
 import Link from 'next/link';
 
 export default function SensorTile({sensor}: { sensor: Sensor }) {
-    const lastReading = sensor.readings[sensor.readings.length - 1];
+    const lastReading = sensor.measurement[sensor.measurement.length - 1];
     const dateTime = new Date(lastReading?.timestamp * 1000).toLocaleString();
-    console.log(sensor.id)
     return (
         <Link
             href={`/sensor?id=${sensor.id}`}
