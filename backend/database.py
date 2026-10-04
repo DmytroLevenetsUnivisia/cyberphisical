@@ -6,7 +6,6 @@ dotenv.load_dotenv()
 
 engine = create_engine(
     os.getenv("DATABASE_URL", "MOCK"),
-    connect_args={"check_same_thread": False},
 )
 
 SessionLocal = sessionmaker(
