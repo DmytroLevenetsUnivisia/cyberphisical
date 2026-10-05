@@ -4,5 +4,5 @@
 node_modules
 dist
 .env.local
-.env
+backend/.env
 *.db
