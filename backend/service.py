@@ -33,7 +33,7 @@ def create_sensor(new_sensor: NewSensor, db: Session):
     db.refresh(sensor)
 
     if new_sensor.value:
-        measurement = Measurement(sensor_id=sensor.id, value=new_sensor.value, timestamp=int(time.time()))
+        measurement = Measurement(sensor_id=sensor.id, value=new_sensor.value, )
         db.add(measurement)
 
     db.commit()
@@ -42,14 +42,14 @@ def create_sensor(new_sensor: NewSensor, db: Session):
     return get_one_sensor(sensor.id, db)
 
 
-def update_sensor(sensor_id: int, new_value: UpdateSensor, db: Session):
+def update_sensor(sensor_id: int, measurement: UpdateSensor, db: Session):
     sensor = db.get(Sensor, sensor_id)
     if not sensor:
         return HTTPException(
             status_code=404,
             detail="Sensor not found"
         )
-    measurement = Measurement(sensor_id=sensor.id, value=new_value.value, timestamp=int(time.time()))
+    measurement = Measurement(sensor_id=sensor.id, value=measurement.value, )
     db.add(measurement)
     db.commit()
 

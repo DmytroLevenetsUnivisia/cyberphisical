@@ -1,3 +1,5 @@
+import time
+
 from pydantic import BaseModel
 
 
@@ -21,3 +23,4 @@ class NewSensor(BaseModel):
 
 class UpdateSensor(BaseModel):
     value: float
+    timestamp: float = int(time.time())
