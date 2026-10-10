@@ -26,6 +26,18 @@ def get_one_sensor(sensor_id: int, db: Session):
     return sensor
 
 
+def get_last_measurement(sensor_id: int, db: Session):
+    stmt = (
+        select(Measurement)
+        .where(Measurement.sensor_id == sensor_id)
+        .order_by(Measurement.timestamp.desc())
+    )
+    measurement = db.scalars(stmt).first()
+    if not measurement:
+        raise HTTPException(status_code=404, detail="Measurement not found")
+    return measurement
+
+
 def create_sensor(new_sensor: NewSensor, db: Session):
     sensor = Sensor(name=new_sensor.name, unit=new_sensor.unit)
     db.add(sensor)
