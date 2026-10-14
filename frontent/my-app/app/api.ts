@@ -58,8 +58,8 @@ export const api = {
         return data;
     },
 
-    subscribeToSensorMeasurements(id: string, lastReceivedTimestamp: number | null, onMessage: (measurements: Measurement) => void): EventSource {
-        const url = new URL(`${process.env.BACKEND_URL || 'MOCK'}/sensors/${id}/stream/last_measurement`);
+    subscribeToSensorMeasurements(backendUrl: string, id: string, lastReceivedTimestamp: number | null, onMessage: (measurements: Measurement) => void): EventSource {
+        const url = new URL(`${backendUrl}/sensors/${id}/stream/last_measurement`);
         if (lastReceivedTimestamp) {
             url.searchParams.append('lastReceivedTimestamp', (lastReceivedTimestamp).toString());
         }
