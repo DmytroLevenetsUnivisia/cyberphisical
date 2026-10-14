@@ -61,7 +61,7 @@ def update_sensor(sensor_id: int, measurement: UpdateSensor, db: Session):
             status_code=404,
             detail="Sensor not found"
         )
-    measurement = Measurement(sensor_id=sensor.id, value=measurement.value, )
+    measurement = Measurement(sensor_id=sensor.id, value=measurement.value, timestamp=measurement.timestamp)
     db.add(measurement)
     db.commit()
 
