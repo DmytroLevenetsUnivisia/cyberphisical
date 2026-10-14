@@ -28,7 +28,7 @@ export default async function SensorPage({searchParams}: { searchParams: SearchP
     useEffect(() => {
         const source = api.subscribeToSensorMeasurements(
             id,
-            measurements.at(measurements.length - 1)!.timestamp,
+            measurements.at(measurements.length - 1) ? measurements.at(measurements.length - 1)?.timestamp! : null,
             ((newMeasurement) => {
                 setMeasurements([...measurements, newMeasurement])
             }),
