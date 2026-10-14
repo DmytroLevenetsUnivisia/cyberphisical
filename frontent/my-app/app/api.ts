@@ -58,6 +58,19 @@ export const api = {
         return data;
     },
 
+    subscribeToSensorMeasurements(id: string, lastReceivedTimestamp: number | null, onMessage: (measurements: Measurement) => void): EventSource {
+        const url = new URL(`${process.env.BACKEND_URL || 'MOCK'}/sensors/${id}/stream/last_measurement`);
+        if (lastReceivedTimestamp) {
+            url.searchParams.append('lastReceivedTimestamp', (lastReceivedTimestamp).toString());
+        }
+        const eventSource = new EventSource(url.toString());
+        eventSource.onmessage = (event) => {
+            const measurement: Measurement = JSON.parse(event.data);
+            onMessage(measurement);
+        };
+        return eventSource;
+    },
+
     async createSensor(sensor: CreateSensor): Promise<Sensor> {
         const {data} = await apiClient.post<Sensor>('/sensors', sensor);
         return data;

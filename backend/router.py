@@ -35,10 +35,10 @@ async def function(sensor_id: int, db: Session = Depends(get_db)):
 @router.get("/sensors/{sensor_id}/stream/last_measurement", response_class=EventSourceResponse)
 async def function(request: Request, sensor_id: int, db: Session = Depends(get_db)):
     while not await request.is_disconnected():
-        last_sent_id = None
+        last_sent_timestamp = request.query_params.get('lastReceivedId', None)
         last_measurement = get_last_measurement(sensor_id, db)
-        if last_measurement.id != last_sent_id:
-            last_sent_id = last_measurement.id
+        if last_measurement.id != last_sent_timestamp:
+            last_sent_timestamp = last_measurement.timestamp
             yield last_measurement
         await asyncio.sleep(1)
 
