@@ -26,6 +26,7 @@ apiClient.interceptors.response.use(
 );
 
 export interface Measurement {
+    id: number
     timestamp: number
     value: number
 }
@@ -58,10 +59,10 @@ export const api = {
         return data;
     },
 
-    subscribeToSensorMeasurements(backendUrl: string, id: string, lastReceivedTimestamp: number | null, onMessage: (measurements: Measurement) => void): EventSource {
+    subscribeToSensorMeasurements(backendUrl: string, id: string, lastReceivedId: number | null, onMessage: (measurements: Measurement) => void): EventSource {
         const url = new URL(`${backendUrl}/sensors/${id}/stream/last_measurement`);
-        if (lastReceivedTimestamp) {
-            url.searchParams.append('lastReceivedTimestamp', (lastReceivedTimestamp).toString());
+        if (lastReceivedId) {
+            url.searchParams.append('lastReceivedId', (lastReceivedId).toString());
         }
         const eventSource = new EventSource(url.toString());
         eventSource.onmessage = (event) => {

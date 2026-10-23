@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from schemas import NewSensor, UpdateSensor
-from service import get_all_sensors, get_one_sensor, update_sensor, delete_sensor, create_sensor, get_last_measurement
+from service import get_all_sensors, get_one_sensor, update_sensor, delete_sensor, create_sensor, get_last_measurement, \
+    get_all_measurements
 
 router = APIRouter()
 
@@ -32,13 +33,18 @@ async def function(sensor_id: int, db: Session = Depends(get_db)):
     return get_one_sensor(sensor_id, db)
 
 
+@router.get("/sensors/{sensor_id}/measurements")
+async def function(sensor_id: int, db: Session = Depends(get_db)):
+    return get_all_measurements(sensor_id, db)
+
+
 @router.get("/sensors/{sensor_id}/stream/last_measurement", response_class=EventSourceResponse)
-async def function(request: Request, sensor_id: int, db: Session = Depends(get_db)):
+async def function(request: Request, sensor_id: int, lastReceivedId: int = 0, db: Session = Depends(get_db)):
+    last_sent_id = lastReceivedId
     while not await request.is_disconnected():
-        last_sent_timestamp = request.query_params.get('lastReceivedId', None)
         last_measurement = get_last_measurement(sensor_id, db)
-        if last_measurement.id != last_sent_timestamp:
-            last_sent_timestamp = last_measurement.timestamp
+        if last_measurement.id != last_sent_id:
+            last_sent_id = last_measurement.id
             yield last_measurement
         await asyncio.sleep(1)
 

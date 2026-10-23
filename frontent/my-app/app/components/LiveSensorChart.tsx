@@ -18,11 +18,11 @@ export default function LiveSensorChart({
     const [measurements, setMeasurements] = useState<Measurement[]>(initialMeasurements);
 
     useEffect(() => {
-        const lastTimestamp = initialMeasurements.at(-1)?.timestamp ?? null;
+        const lastId = initialMeasurements.at(-1)?.id ?? null;
         const source = api.subscribeToSensorMeasurements(
             backendUrl,
             sensorId,
-            lastTimestamp,
+            lastId,
             (newMeasurement) => {
                 setMeasurements((prev) => [...prev, newMeasurement]);
             },

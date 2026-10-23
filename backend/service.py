@@ -1,7 +1,7 @@
 import time
 
-from fastapi import HTTPException
-from sqlalchemy import select
+from fastapi import HTTPException, FastAPI
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session, selectinload
 
 from schemas import NewSensor, UpdateSensor
@@ -9,8 +9,26 @@ from models import Sensor, Measurement
 
 
 def get_all_sensors(db: Session):
-    stmt = select(Sensor).options(selectinload(Sensor.measurement).load_only(Measurement.timestamp, Measurement.value))
-    return db.scalars(stmt).all()
+    latest = (
+        select(
+            Measurement.sensor_id,
+            func.max(Measurement.id).label("measurement_id"),
+        )
+        .group_by(Measurement.sensor_id)
+        .subquery()
+    )
+    stmt = (
+        select(Sensor, Measurement)
+        .outerjoin(
+            latest,
+            (latest.c.sensor_id == Sensor.id),
+        )
+        .outerjoin(Measurement, Measurement.id == latest.c.measurement_id)
+    )
+    return [
+        {"sensor": sensor, "last_measurement": measurement}
+        for sensor, measurement in db.execute(stmt)
+    ]
 
 
 def get_one_sensor(sensor_id: int, db: Session):
@@ -24,6 +42,17 @@ def get_one_sensor(sensor_id: int, db: Session):
     if not sensor:
         raise HTTPException(status_code=404, detail="Sensor not found")
     return sensor
+
+
+def get_all_measurements(sensor_id: int, db: Session):
+    stmt = (
+        select(Measurement)
+        .where(Measurement.sensor_id == sensor_id)
+    )
+    measurements = db.scalars(stmt).all()
+    if not measurements:
+        raise HTTPException(status_code=404, detail="Sensor not found")
+    return measurements
 
 
 def get_last_measurement(sensor_id: int, db: Session):
@@ -45,7 +74,7 @@ def create_sensor(new_sensor: NewSensor, db: Session):
     db.refresh(sensor)
 
     if new_sensor.value:
-        measurement = Measurement(sensor_id=sensor.id, value=new_sensor.value, )
+        measurement = Measurement(sensor_id=sensor.id, value=new_sensor.value, timestamp=new_sensor.timestamp or int(time.time()))
         db.add(measurement)
 
     db.commit()
@@ -57,11 +86,11 @@ def create_sensor(new_sensor: NewSensor, db: Session):
 def update_sensor(sensor_id: int, measurement: UpdateSensor, db: Session):
     sensor = db.get(Sensor, sensor_id)
     if not sensor:
-        return HTTPException(
+        raise HTTPException(
             status_code=404,
             detail="Sensor not found"
         )
-    measurement = Measurement(sensor_id=sensor.id, value=measurement.value, timestamp=measurement.timestamp)
+    measurement = Measurement(sensor_id=sensor.id, value=measurement.value, timestamp=measurement.timestamp or int(time.time()))
     db.add(measurement)
     db.commit()
 
@@ -71,7 +100,7 @@ def update_sensor(sensor_id: int, measurement: UpdateSensor, db: Session):
 def delete_sensor(sensor_id: int, db: Session):
     sensor = db.get(Sensor, sensor_id)
     if not sensor:
-        return HTTPException(
+        raise HTTPException(
             status_code=404,
             detail="Sensor not found"
         )

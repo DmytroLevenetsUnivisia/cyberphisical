@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class Reading(BaseModel):
-    timestamp: float
+    id: float
     value: float
 
 
@@ -23,4 +23,4 @@ class NewSensor(BaseModel):
 
 class UpdateSensor(BaseModel):
     value: float
-    timestamp: float = int(time.time())
+    timestamp: float
