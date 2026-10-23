@@ -25,10 +25,11 @@ def get_all_sensors(db: Session):
         )
         .outerjoin(Measurement, Measurement.id == latest.c.measurement_id)
     )
-    return [
-        {"sensor": sensor, "last_measurement": measurement}
-        for sensor, measurement in db.execute(stmt)
-    ]
+    sensors = []
+    for sensor, measurement in db.execute(stmt):
+        sensor.measurement = [measurement]
+        sensors.append(sensor)
+    return sensors
 
 
 def get_one_sensor(sensor_id: int, db: Session):
