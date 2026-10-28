@@ -1,4 +1,4 @@
-import {api, ApiConnectionError, Sensor} from "../api";
+import {api, ApiConnectionError, Measurement, Sensor} from "../api";
 import LiveSensorChart from "../components/LiveSensorChart";
 import Error from "../components/Error";
 
@@ -12,8 +12,10 @@ export default async function SensorPage({searchParams}: { searchParams: SearchP
     }
 
     let sensor: Sensor;
+    let measurements: Measurement[];
     try {
         sensor = await api.getSensor(id);
+        measurements = await api.getAllMeasurements(id);
     } catch (error) {
         if (error instanceof ApiConnectionError) {
             return <Error msg={error.message}></Error>;
@@ -28,7 +30,7 @@ export default async function SensorPage({searchParams}: { searchParams: SearchP
                 <div className="mt-5 h-96">
                     <LiveSensorChart
                         sensorId={id}
-                        initialMeasurements={sensor.measurement}
+                        initialMeasurements={measurements}
                         unit={sensor.unit}
                         backendUrl={process.env.BACKEND_URL || 'MOCK'}
                     />

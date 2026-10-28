@@ -59,8 +59,13 @@ export const api = {
         return data;
     },
 
-    subscribeToSensorMeasurements(backendUrl: string, id: string, lastReceivedId: number | null, onMessage: (measurements: Measurement) => void): EventSource {
-        const url = new URL(`${backendUrl}/sensors/${id}/stream/last_measurement`);
+    async getAllMeasurements(id: string): Promise<Measurement[]> {
+        const {data} = await apiClient.get<Measurement[]>(`/sensors/${id}/measurements`);
+        return data;
+    },
+
+    subscribeToSensorMeasurements(backend_url: string, id: string, lastReceivedId: number | null, onMessage: (measurements: Measurement) => void): EventSource {
+        const url = new URL(`${backend_url}/sensors/${id}/stream/last_measurement`);
         if (lastReceivedId) {
             url.searchParams.append('lastReceivedId', (lastReceivedId).toString());
         }
@@ -72,18 +77,18 @@ export const api = {
         return eventSource;
     },
 
-    async createSensor(sensor: CreateSensor): Promise<Sensor> {
-        const {data} = await apiClient.post<Sensor>('/sensors', sensor);
-        return data;
-    },
-
-    async patchSensor(id: string, value: number): Promise<Sensor> {
-        const {data} = await apiClient.patch<Sensor>(`/sensors/${id}`, value);
-        return data;
-    },
-
-    async deleteSensor(id: string): Promise<Sensor> {
-        const {data} = await apiClient.delete(`/sensors/${id}`);
-        return data;
-    }
+    // async createSensor(sensor: CreateSensor): Promise<Sensor> {
+    //     const {data} = await apiClient.post<Sensor>('/sensors', sensor);
+    //     return data;
+    // },
+    //
+    // async patchSensor(id: string, value: number): Promise<Sensor> {
+    //     const {data} = await apiClient.patch<Sensor>(`/sensors/${id}`, value);
+    //     return data;
+    // },
+    //
+    // async deleteSensor(id: string): Promise<Sensor> {
+    //     const {data} = await apiClient.delete(`/sensors/${id}`);
+    //     return data;
+    // }
 }
