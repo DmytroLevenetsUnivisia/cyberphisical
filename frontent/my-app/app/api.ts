@@ -31,6 +31,12 @@ export interface Measurement {
     value: number
 }
 
+export interface HotWaterAlert {
+    message: string
+    timestamp: number
+    value: number
+}
+
 export interface Sensor {
     id: string
     name: string
@@ -73,6 +79,16 @@ export const api = {
         eventSource.onmessage = (event) => {
             const measurement: Measurement = JSON.parse(event.data);
             onMessage(measurement);
+        };
+        return eventSource;
+    },
+
+    subscribeToHotWaterAlerts(backend_url: string, id: string, onMessage: (alert: HotWaterAlert) => void): EventSource {
+        const url = new URL(`${backend_url}/sensors/${id}/stream/hot_water_alert`);
+        const eventSource = new EventSource(url.toString());
+        eventSource.onmessage = (event) => {
+            const alert: HotWaterAlert = JSON.parse(event.data);
+            onMessage(alert);
         };
         return eventSource;
     },

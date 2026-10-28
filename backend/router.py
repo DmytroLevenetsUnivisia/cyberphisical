@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schemas import NewSensor, UpdateSensor
 from service import get_all_sensors, get_one_sensor, update_sensor, delete_sensor, create_sensor, get_last_measurement, \
-    get_all_measurements
+    get_all_measurements, get_hot_water_alert
 
 router = APIRouter()
 
@@ -46,12 +46,23 @@ async def function(request: Request, sensor_id: int, lastReceivedId: int = 0, db
         if last_measurement.id != last_sent_id:
             last_sent_id = last_measurement.id
             yield last_measurement
-        await asyncio.sleep(1)
+        await asyncio.sleep(15)
 
 
-# @router.get("/sensors/{sensor_id}/stream/hot_water_alert", response_class=EventSourceResponse)
-# async def function(request: Request, sensor_id: int, db: Session = Depends(get_db)):
-#     pass
+@router.get("/sensors/{sensor_id}/stream/hot_water_alert", response_class=EventSourceResponse)
+async def function(request: Request, sensor_id: int, db: Session = Depends(get_db)):
+    last_measurement = get_last_measurement(sensor_id, db)
+    last_checked_id = last_measurement.id
+    previous_value = last_measurement.value
+    while not await request.is_disconnected():
+        last_measurement = get_last_measurement(sensor_id, db)
+        if last_measurement.id != last_checked_id:
+            alert = get_hot_water_alert(previous_value, last_measurement)
+            if alert:
+                yield alert
+            previous_value = last_measurement.value
+            last_checked_id = last_measurement.id
+        await asyncio.sleep(15)
 
 
 @router.post("/sensors")

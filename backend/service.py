@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session, selectinload
 from schemas import NewSensor, UpdateSensor
 from models import Sensor, Measurement
 
+HOT_WATER_THRESHOLD = 30
+
 
 def get_all_sensors(db: Session):
     latest = (
@@ -64,6 +66,14 @@ def get_last_measurement(sensor_id: int, db: Session):
     if not measurement:
         raise HTTPException(status_code=404, detail="Measurement not found")
     return measurement
+
+
+def get_hot_water_alert(previous_value: float, measurement: Measurement):
+    if previous_value <= HOT_WATER_THRESHOLD < measurement.value:
+        return {"message": "вода нагрілась", "value": measurement.value, "timestamp": measurement.timestamp}
+    if measurement.value <= HOT_WATER_THRESHOLD < previous_value:
+        return {"message": "вода охолола", "value": measurement.value, "timestamp": measurement.timestamp}
+    return None
 
 
 def create_sensor(new_sensor: NewSensor, db: Session):
