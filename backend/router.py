@@ -47,7 +47,7 @@ async def function(request: Request, sensor_id: int, last_received_id: int = 0, 
         if last_measurement.id != last_sent_id:
             last_sent_id = last_measurement.id
             yield last_measurement
-        await asyncio.sleep(settings.sse_refresh_pause)
+        await asyncio.sleep(settings.sse_refresh_pause_seconds)
 
 
 @router.get("/sensors/{sensor_id}/stream/hot_water_alert", response_class=EventSourceResponse)
@@ -57,7 +57,7 @@ async def function(request: Request, sensor_id: int, db: Session = Depends(get_d
         last_checked_id, alert = get_hot_water_alert(sensor_id, last_checked_id, db)
         if alert:
             yield alert
-        await asyncio.sleep(settings.sse_refresh_pause)
+        await asyncio.sleep(settings.sse_refresh_pause_seconds)
 
 
 @router.post("/sensors")

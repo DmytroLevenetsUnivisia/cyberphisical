@@ -76,10 +76,10 @@ def get_hot_water_alert(sensor_id: int, last_checked_id: int, db: Session):
     stmt = (
         select(
             Measurement,
-            and_(previous_value <= settings.hot_water_threshold,
-                 Measurement.value > settings.hot_water_threshold).label("heated"),
-            and_(previous_value > settings.hot_water_threshold,
-                 Measurement.value <= settings.hot_water_threshold).label("cooled"),
+            and_(previous_value <= settings.hot_water_threshold_Celsius,
+                 Measurement.value > settings.hot_water_threshold_Celsius).label("heated"),
+            and_(previous_value > settings.hot_water_threshold_Celsius,
+                 Measurement.value <= settings.hot_water_threshold_Celsius).label("cooled"),
         )
         .where(Measurement.sensor_id == sensor_id)
         .order_by(Measurement.timestamp.desc())
