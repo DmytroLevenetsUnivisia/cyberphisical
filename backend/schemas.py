@@ -17,10 +17,10 @@ class Sensor(BaseModel):
 
 class NewSensor(BaseModel):
     name: str
-    value: float| None
+    value: float | int | None
     unit: str
 
 
 class UpdateSensor(BaseModel):
-    value: float
-    timestamp: float
+    value: float | int
+    timestamp: float | int | None = None

@@ -36,8 +36,6 @@ def get_one_sensor(sensor_id: int, db: Session):
     stmt = (
         select(Sensor)
         .where(Sensor.id == sensor_id)
-        .options(selectinload(Sensor.measurement)
-                 .load_only(Measurement.timestamp, Measurement.value))
     )
     sensor = db.scalars(stmt).first()
     if not sensor:
