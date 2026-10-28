@@ -1,5 +1,6 @@
 import {api, ApiConnectionError, Measurement, Sensor} from "../api";
 import LiveSensorChart from "../components/LiveSensorChart";
+import HotWaterAlert from "../components/HotWaterAlert";
 import Error from "../components/Error";
 
 type SearchParams = Promise<{ id?: string }>;
@@ -27,6 +28,10 @@ export default async function SensorPage({searchParams}: { searchParams: SearchP
         <div className={`max-w-5xl m-auto bg-gray-900`}>
             <div className={`p-5`}>
                 <p className="">Name: {sensor.name}</p>
+                <HotWaterAlert
+                    sensorId={id}
+                    backendUrl={process.env.BACKEND_URL || 'MOCK'}
+                />
                 <div className="mt-5 h-96">
                     <LiveSensorChart
                         sensorId={id}

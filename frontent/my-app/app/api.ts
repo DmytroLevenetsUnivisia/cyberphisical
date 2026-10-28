@@ -70,10 +70,10 @@ export const api = {
         return data;
     },
 
-    subscribeToSensorMeasurements(backend_url: string, id: string, lastReceivedId: number | null, onMessage: (measurements: Measurement) => void): EventSource {
+    subscribeToSensorMeasurements(backend_url: string, id: string, last_received_id: number | null, onMessage: (measurements: Measurement) => void): EventSource {
         const url = new URL(`${backend_url}/sensors/${id}/stream/last_measurement`);
-        if (lastReceivedId) {
-            url.searchParams.append('lastReceivedId', (lastReceivedId).toString());
+        if (last_received_id) {
+            url.searchParams.append('last_received_id', (last_received_id).toString());
         }
         const eventSource = new EventSource(url.toString());
         eventSource.onmessage = (event) => {

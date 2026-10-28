@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends
 from fastapi.sse import EventSourceResponse
 from sqlalchemy.orm import Session
 
+from config import settings
 from database import get_db
 from schemas import NewSensor, UpdateSensor
 from service import get_all_sensors, get_one_sensor, update_sensor, delete_sensor, create_sensor, get_last_measurement, \
@@ -39,30 +40,24 @@ async def function(sensor_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/sensors/{sensor_id}/stream/last_measurement", response_class=EventSourceResponse)
-async def function(request: Request, sensor_id: int, lastReceivedId: int = 0, db: Session = Depends(get_db)):
-    last_sent_id = lastReceivedId
+async def function(request: Request, sensor_id: int, last_received_id: int = 0, db: Session = Depends(get_db)):
+    last_sent_id = last_received_id
     while not await request.is_disconnected():
         last_measurement = get_last_measurement(sensor_id, db)
         if last_measurement.id != last_sent_id:
             last_sent_id = last_measurement.id
             yield last_measurement
-        await asyncio.sleep(15)
+        await asyncio.sleep(settings.sse_refresh_pause)
 
 
 @router.get("/sensors/{sensor_id}/stream/hot_water_alert", response_class=EventSourceResponse)
 async def function(request: Request, sensor_id: int, db: Session = Depends(get_db)):
-    last_measurement = get_last_measurement(sensor_id, db)
-    last_checked_id = last_measurement.id
-    previous_value = last_measurement.value
+    last_checked_id = get_last_measurement(sensor_id, db).id
     while not await request.is_disconnected():
-        last_measurement = get_last_measurement(sensor_id, db)
-        if last_measurement.id != last_checked_id:
-            alert = get_hot_water_alert(previous_value, last_measurement)
-            if alert:
-                yield alert
-            previous_value = last_measurement.value
-            last_checked_id = last_measurement.id
-        await asyncio.sleep(15)
+        last_checked_id, alert = get_hot_water_alert(sensor_id, last_checked_id, db)
+        if alert:
+            yield alert
+        await asyncio.sleep(settings.sse_refresh_pause)
 
 
 @router.post("/sensors")

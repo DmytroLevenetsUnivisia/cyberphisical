@@ -1,13 +1,12 @@
 import time
 
-from fastapi import HTTPException, FastAPI
-from sqlalchemy import select, func
-from sqlalchemy.orm import Session, selectinload
+from fastapi import HTTPException
+from sqlalchemy import select, func, and_
+from sqlalchemy.orm import Session
 
 from schemas import NewSensor, UpdateSensor
 from models import Sensor, Measurement
-
-HOT_WATER_THRESHOLD = 30
+from config import settings
 
 
 def get_all_sensors(db: Session):
@@ -68,12 +67,32 @@ def get_last_measurement(sensor_id: int, db: Session):
     return measurement
 
 
-def get_hot_water_alert(previous_value: float, measurement: Measurement):
-    if previous_value <= HOT_WATER_THRESHOLD < measurement.value:
-        return {"message": "вода нагрілась", "value": measurement.value, "timestamp": measurement.timestamp}
-    if measurement.value <= HOT_WATER_THRESHOLD < previous_value:
-        return {"message": "вода охолола", "value": measurement.value, "timestamp": measurement.timestamp}
-    return None
+def get_hot_water_alert(sensor_id: int, last_checked_id: int, db: Session):
+    previous_value = (
+        select(Measurement.value)
+        .where(Measurement.id == last_checked_id)
+        .scalar_subquery()
+    )
+    stmt = (
+        select(
+            Measurement,
+            and_(previous_value <= settings.hot_water_threshold,
+                 Measurement.value > settings.hot_water_threshold).label("heated"),
+            and_(previous_value > settings.hot_water_threshold,
+                 Measurement.value <= settings.hot_water_threshold).label("cooled"),
+        )
+        .where(Measurement.sensor_id == sensor_id)
+        .order_by(Measurement.timestamp.desc())
+    )
+    row = db.execute(stmt).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Measurement not found")
+    measurement, heated, cooled = row
+    if heated:
+        return measurement.id, {"message": "вода нагрілась", "value": measurement.value, "timestamp": measurement.timestamp}
+    if cooled:
+        return measurement.id, {"message": "вода охолола", "value": measurement.value, "timestamp": measurement.timestamp}
+    return measurement.id, None
 
 
 def create_sensor(new_sensor: NewSensor, db: Session):
@@ -83,7 +102,8 @@ def create_sensor(new_sensor: NewSensor, db: Session):
     db.refresh(sensor)
 
     if new_sensor.value:
-        measurement = Measurement(sensor_id=sensor.id, value=new_sensor.value, timestamp=new_sensor.timestamp or int(time.time()))
+        measurement = Measurement(sensor_id=sensor.id, value=new_sensor.value,
+                                  timestamp=new_sensor.timestamp or int(time.time()))
         db.add(measurement)
 
     db.commit()
@@ -99,7 +119,8 @@ def update_sensor(sensor_id: int, measurement: UpdateSensor, db: Session):
             status_code=404,
             detail="Sensor not found"
         )
-    measurement = Measurement(sensor_id=sensor.id, value=measurement.value, timestamp=measurement.timestamp or int(time.time()))
+    measurement = Measurement(sensor_id=sensor.id, value=measurement.value,
+                              timestamp=measurement.timestamp or int(time.time()))
     db.add(measurement)
     db.commit()
 
